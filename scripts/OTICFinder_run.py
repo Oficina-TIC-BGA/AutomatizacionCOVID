@@ -34,25 +34,28 @@ tqdm.pandas()
 # PARA LIMPIAR DIRECCIONES
 def filtering(dir):
     dir = str(dir)
-    # definir las palabras comunes
+    #print('Inicial {}'.format(dir))
+    # definir las palabras comunes para tratar de estandarizar las direcciones
+    # TODO: Resumir expresiones regulares
     common_words = {} 
-    common_words['carrera'] = ['\bK','KRA', 'CRA', 'KR', 'CR\s', 'ARRERA', 'CARRRERA', 'CARRRA', 'CRR',  'CARERRA', 'CARR\s', 'CARRERA']
-    common_words['calle'] = ['CLL', 'CL', 'CLEE', 'CLLE', 'CALL\b','\bCC\b']
-    common_words['diagonal'] = ['DIAG\s', 'DIAGONAL', 'DG']
-    common_words['transversal'] = ['TRANSVERSAL', '\sTR\s','TRV','TRANSV', 'TV', 'TRANVERSAL', 'TRANSV', 'TRANSSV\s','TRASVERSAL', 'TRANV', 'TANSVERSAL', 'TRANVS']
-    common_words['numero'] = ['\bNUM\b', '\sNUM\s', 'NUMERO', 'NÚMERO', '#', '\sNO\s', 'NRO', 'Nª','Nº','N°']
-    common_words['circunvalar'] = ['VIRCUNVALAR','CIRCUNVALAR', 'CIRC', 'CIR', 'CCV', 'CV', 'circunvalarv']
-    common_words['avenida'] = ['AV\s+', 'AVENIDA', '\sAVD\s','AVDA', 'AVEN\s', 'avn', '\svda\s']
+    common_words['carrera'] = ['\bK','KRA', 'CRA', 'KR', '\s*CR\s', '\s*carre\s','ARRERA', 'CARRRERA', 'CARRRA', 'CRR','CARERRA', '\s*CARR\s', '\s*carr\s', '\s*CRARREA\s','CARRERA']
+    common_words['calle'] = ['CLL', 'CL', 'CLEE', 'CLLE', '\s*CALL\s','\s*CC\s']
+    common_words['diagonal'] = ['DIAG\s', 'DIAGONAL', 'DG', '\sDIG\s']
+    common_words['transversal'] = ['TRANSVERSAL', '\sTR\s','TRV','TRANSV', 'TV', 'TRANVERSAL', 'TRANSV', 'TRANSSV\s','TRASVERSAL', 'TRANV', 'TANSVERSAL', 'TRANVS', '\s*trans\s']
+    common_words['numero'] = ['\bNUM\b', '\sNUM\s', 'NUMERO', 'NMERO', 'NÚMERO', '#', '\sNO\s', 'NRO', 'Nª','Nº','N°']
+    common_words['circunvalar'] = ['VIRCUNVALAR','CIRCUNVALAR', '\sCIRC\s', '\sCIR\s', 'CCV', 'CV', 'circunvalarv', 'CIRCCUN\s']
+    common_words['avenida'] = ['AV\s+', 'AVENIDA', '\sAVD\s','AVDA', 'AVEN\s', 'avn', '\svda\s', '\savd\s']
     common_words['quebradaseca'] = ['qdaseca', 'quebrada seca', 'quebrada']
-    common_words['edificio'] = ['edif*\s', 'edf', 'edificio']
-    common_words['torre'] = ['tprre\s','torr*\s', '\btor\b', '\sto\s', 'tr\s', '\st\s']
-    common_words['barrio'] = ['\sbrr', '\sbario\s','barrio','BARRIO', '\sbr\s']
+    common_words['edificio'] = ['edif*\s', 'edf', 'edificio', '\sedi\s']
+    common_words['torre'] = ['tprre\s','\storr*\s', '\stor\s', '\sto\s', '\str\s', '\st\s']
+    common_words['barrio'] = ['\sbrr', '\sbario\s','barrio','BARRIO', '\sbr\s', '\sbarri\s']
     common_words['apartamento'] = ['\sAPTO\s', '\sAPP\s' ,'APTO ','\sAPTO', 'ap\s', 'aparatamento','apartamento*', 'apar\s','apart\s', 'APRO\s', '\sapato', '\sapt', '\bAPTO\b', '\saparta\s']
-    common_words['bloque'] = ['BLOQUE', '\sblo\s', 'bloq\s']
-    common_words['sector'] = ['SECTOR', 'sect\s', 'sec\s'] 
+    common_words['bloque'] = ['BLOQUE', '\sblo\s', '\sbloq\s']
+    common_words['sector'] = ['SECTOR', '\ssect\s', '\ssec\s'] 
     common_words['kilometro'] = ['KM\s*', 'KILOMETRO', 'KM ']
-    common_words['vereda'] = ['\bVDA\s', '\bVER\s']
-    common_words['manzana'] = ['\sMANZANA\s','\smz\s*', '\smanza\s']
+    common_words['vereda'] = ['\s*VDA\s', '\s*VER\s', '\sBEREDA\s']
+    common_words['urbanizacion'] = ['URBANIZAC', 'URBANIZACION', 'URBANIZACIÓN']
+    common_words['manzana'] = ['\s*MANZANA\s','\s*mz\s*\d+', '\s*mz\s', '\s]mz\s*[a-z]', '\s*manza\s', '\s*manz\s']
 
     # definir los patrones con las expresiones regulares
     pattern_numeros = re.compile(r'\d\s*[A-Z]\s*#', re.IGNORECASE)
@@ -69,52 +72,55 @@ def filtering(dir):
     pattern_apartamento = re.compile(r'|'.join(common_words['apartamento']), re.IGNORECASE)
     pattern_bloque = re.compile(r'|'.join(common_words['bloque']), re.IGNORECASE)
     pattern_sector = re.compile(r'|'.join(common_words['sector']), re.IGNORECASE)
+    pattern_urbanizacion = re.compile(r'|'.join(common_words['urbanizacion']), re.IGNORECASE)
     pattern_kilometro = re.compile(r'|'.join(common_words['kilometro']), re.IGNORECASE)
-    pattern_guion = re.compile(r'-|\.|·|\|º|°')#|Nª|º|°
+    pattern_guion = re.compile(r'-|\.|·|º|°')#|Nª|º|°
     pattern_nume2 = re.compile(r'\sNO\d|\sNUM\d', re.IGNORECASE)
     pattern_nume3 = re.compile(r'\dNO\d|\dNUM\d', re.IGNORECASE)
     pattern_final = re.compile(r'barrio|primer piso\s*|peatonal\s*\d+|manzana\s*\d+|t\d+|casa\s*\d+|piso\s*\d+|apartamento\s*\d+|torre\s*\d+', re.IGNORECASE)
-    patter_final2 = re.compile(r'conjunto residencial|torre\s[a-z]*|edificio|edificio\s*\d+|bloque\s*\d+|piso|apartamento|manzana\s*\d+|sector\s*[a-z]|manzana\s*[a-z]|sector\s*\d+', re.IGNORECASE)
+    pattern_final2 = re.compile(r'conjunto residencial|torre\s[a-z]*|edificio|edificio\s*\d+|bloque\s*\d+|apartamento|manzana\s*\d+|manzana\s*[a-z]|sector\s*\d+', re.IGNORECASE)
+    pattern_final3 = re.compile(r'conjunto|conj|conjunto\s*residen|segundo piso|sin dato|ninguno|direccion|local\s*\d*|piso|sector\s*[a-z]', re.IGNORECASE)
+    pattern_final4 = re.compile(r'2DO|1RO|1ERO|NO ENCONTRADO|ENTRADA|PI\s*\d*|ninguno|ninguna|urbanizacion', re.IGNORECASE)
     #pattern_final = re.compile(r'(\s[a-z\s*]*\s*)', re.IGNORECASE)
     pattern_barrio = re.compile(r'|'.join(common_words['barrio']), re.IGNORECASE)
     pattern_std = re.compile(r'carrera|calle|avenida|diagonal|transversal|circunvalar')
     # ejecutar las expresiones regulares
-    # ejecutar los patrones iniciales
+    
+    # Este patron separa los numeros pegados
     match_specials_num = re.search(pattern_nume2, dir)
     if match_specials_num:
         found_pattern = match_specials_num.group()
-        dir = dir.replace(found_pattern[:-1], ' ')
-    
+        dir = dir.replace(found_pattern[:-1], ' ')  
+    # Este patron separa los numeros pegados
     match_specials_num3 = re.search(pattern_nume3, dir)
     if match_specials_num3:
         found_pattern3 = match_specials_num3.group()
         dir = dir.replace(found_pattern3[1:-1], ' ')
-
+    # elimina signos especiales, guiones, grados, etc...
     match_specials = re.finditer(pattern_guion, dir)
     if match_specials:
         for match_guion in match_specials:
             found_pattern = match_guion.group()
             dir = dir.replace(found_pattern, ' ')
-
+    # pega las letras de las calles si tiene
     match_numeros = re.search(pattern_numeros, dir)
     if match_numeros:
         x0, xt = match_numeros.span()
         if dir[x0+1]==' ':
             dir = dir[:x0+1] + dir[x0+1:].replace(' ','',1) 
 
-    # ejecutar los patrones intermedios        
+    # ejecutar los patrones intermedios
+    # cambia los patrones por su forma correcta y agrega espacios para separar        
     patterns = [pattern_carrera, pattern_calle, pattern_diagonal, pattern_transversal, pattern_num, pattern_circunvalar, 
                 pattern_avenida, pattern_quebradaseca, pattern_edificio, pattern_torre, pattern_apartamento, pattern_bloque, pattern_sector,
-                pattern_kilometro, pattern_barrio]
+                pattern_kilometro, pattern_barrio, pattern_urbanizacion]
     for pattern, p in zip(patterns,[' carrera ', ' calle ', ' diagonal ', ' transversal ', ' ', 'circunvalar', 'avenida', 'quebradaseca', 'edificio',
-                                    ' torre ', ' apartamento ', ' bloque ', ' sector ', ' kilometro ', ' barrio ']):
+                                    ' torre ', ' apartamento ', ' bloque ', ' sector ', ' kilometro ', ' barrio ', ' urbanizacion ']):
         matches = re.finditer(pattern, dir)
         if matches:
             for match in matches:
-                #print(match)
                 found_pattern = match.group()
                 dir = dir.replace(found_pattern, p)
-                #print(dir)
                 if p != ' ':
                     pattern_tem = re.compile(p)
                     found_tem = re.search(pattern_tem, dir)
@@ -125,9 +131,8 @@ def filtering(dir):
                     except:
                         pass        
             dir = dir.strip().replace("  ", " ").replace("  ", " ").lower() 
-
-    
-    for pat in [pattern_final, patter_final2]:
+    # Encuentra todos los patrones y los elimina 
+    for pat in [pattern_final, pattern_final2, pattern_final3, pattern_final4]:
         matches_finales = re.finditer(pat, dir) 
         if matches_finales:
             for match_final in matches_finales:
@@ -136,82 +141,186 @@ def filtering(dir):
         else:    
             pass  
     dir = dir.strip().replace("  ", " ").replace("  ", " ")    
-  
     return dir 
 
 ###### COLOCAR BARRIO - MUNICIPIO
-def where_is(dir, data, lista_bucaramanga, lista_floridablanca, lista_giron, pattern_general):
-    # ponerle la ciudad
-    # ejecutar los patrones intermedios        
-    # para saber si no entro a ninguna ciudad
-    flag = False
-    dir_copy = dir
-    # si hay barrio de base de datos
-    pre_barrio = data.loc[data.dir_filtradas.str.lower()==dir, 'bar_ver_'].isnull().values[0]
-    patterns = [lista_bucaramanga, lista_floridablanca, lista_giron] # pattern_piedecuesta, pattern_giron,
-    #print('dir ori', dir)
-    flag_b = False
-    for pattern, p in zip(patterns,['bucaramanga', 'floridablanca', 'giron']):
-        # selecciona de a 20 ciudades
-        for l in range(0,len(pattern),20):    
-            pattern_partial = re.compile(r'|'.join(pattern[l:l+20]), re.IGNORECASE)
-            matches = re.findall(pattern_partial, dir)
-            # para saber si ya entro a un patron y no repita
-            if len(matches)>0:
-                #for found_pattern in matches:
-                if p == 'floridablanca':
-                    flag = True 
-                    if flag_b==False:
-                        dir = dir + str(', '+p)
-                    flag_b = True    
-                elif p == 'giron':
-                    flag = True
-                    if flag_b==False:
-                        dir = dir + str(', '+p)
-                    flag_b = True        
-                elif p == 'piedecuesta':
-                    flag = True
-                    if flag_b==False:
-                        dir = dir + str(', '+p)   
-                    flag_b = True                
-                elif p == 'bucaramanga':
-                    flag = True
-                    if flag_b==False:
-                        dir = dir + str(', '+p)   
-                    flag_b = True  
-    
-    matches_found = re.findall(pattern_general, dir)
-    if len(matches_found)>1 and ~pre_barrio:
-        pre_barrio_exist = data.loc[data.dir_filtradas.str.lower()==dir_copy, 'bar_ver_'].values[0]
-        # TO DO: analizar  si al final quedó con más de una ciudad
-        #print(matches_found, pre_barrio_exist) 
-    if flag == False:
-        # puede que haya algo útil en la dirección
-        if dir!='nan' and dir!='sin informacion' and len(dir)>=3:
-            # Descartar que no sean ciudades de otro departamento
-            # si no colocar bucaramanga por defecto
-            matches_general = re.findall(pattern_general, dir)
-            flag_c = False
-            if len(matches_general)>0:
-                # que ciudad encontro?
-                ciudad = matches_general[0]
-                flag_c = True
+def pattern_row(row, dir):
+    # Revisar que no este nulo los campos
+    total = []
+    for column in ['BARRIO','SECTOR', 'EDIFICIO', 'CONJUNTO']: 
+        if isinstance(row[column], str): # si no es vacio
+            total = total + [j.strip() for j in row[column].strip().split(',')]   
+    if len(total)>0: 
+        pattern = re.compile(r'|'.join([i for i in total]), re.IGNORECASE)
+        result = re.findall(pattern, dir)
+    else:
+        result = total    
+    return result
 
-            if flag_c==False:
-                dir = dir + str(', bucaramanga')
-                # TODO antes de colocar mirar si decia otra ciudad 
-                #if ~pre_barrio:
-                #    pre_barrio_exist = data.loc[data.dir_filtradas.str.lower()==dir_copy, 'bar_ver_'].values[0]
-                #    # TO DO: cuando devuelvan el barrio hay que considerar eliminarla
-                #    #dir = dir + str(', '+str(pre_barrio_exist).lower()+', bucaramanga')
-                #    pass
-                #else: 
-                #    dir = dir + str(', bucaramanga')  
-        # si no hay ningún match ya sea porque esta vacia o porque no es una dirección útil
-        else:
-            # DEVOLVER DIRECCIONES VACIAS
-            dir = np.nan
-    #print('-->',dir)                                          
+def buscar_pertenencia(dir, df_bucaramanga, df_floridablanca, df_giron):
+    total_asign = defaultdict(list)
+    for c, df_c in zip(['bucaramanga', 'floridablanca', 'giron'],[df_bucaramanga, df_floridablanca, df_giron]):
+        # paso 1: Unir columnas SECTOR - CONJUNTO - EDIFICIO para cada barrio y buscar
+        for index, row in df_c.iterrows():
+            founded = pattern_row(row, dir)
+            if len(founded)>0:
+                # esto quiere decir que hubo al menos un concidencia para ese barrio
+                # asignar el barrio a la ciudad
+                total_asign[c].append(row.BARRIO)
+    return total_asign
+
+def where_is(dir, data, df_bucaramanga, df_floridablanca, df_giron, pattern_general):
+    # ESTRUCTURA:
+    # 1. Identificar si encuentra alguna residencia, conjunto, urbanizacion o edificios y asignar el barrio
+    # 1.1 si asigna el barrio asigna inmediatamente la ciudad y adicionalmente guarda el barrio y comuna
+    # 2. si no encuentra ninguno intenta encontrar el barrio para determinar la ciudad y la comuna, tambien se guardan
+    # 3. si no encuentra ningun barrio intenta encontrar otra ciudad y guarda vacio en el resto de variables
+    # 4. si no ocurre ninguna de las anteriores coloca bucaramanga por defecto  
+    # la variables a añadir en el dataframe son comuna_dir, barrio_dir, ciudad_dir
+    # Recorrer todas las ciudad a incluir del area metropolitana
+    # Va a contener todos las coincidencias en todos los municipios coinciderados.
+    # si hay barrio de base de datos
+    #print(dir)
+    if dir != 'nan':
+        pre_barrio = data.loc[data.dir_filtradas.str.lower()==dir, 'bar_ver_'].isnull().values[0]
+        # buscar en que barrios y ciudades puede haber una coincidencia
+        total_asign = buscar_pertenencia(dir, df_bucaramanga, df_floridablanca, df_giron)            
+        # Buscar si hay algun patron para otra ciudad)
+        # construir el patron para buscar ciudades fuera del area metropolitana consideradas
+        matches_found = re.findall(pattern_general, dir)
+        # Si las dos listas estan vacias quiere decir que posiblemente viene solo la direccion
+        # buscar si hay informacion adicional
+        pre_barrio_exist = None
+        if ~pre_barrio: # si no es null
+            pre_barrio_exist = data.loc[data.dir_filtradas.str.lower()==dir, 'bar_ver_'].values[0]
+            #print('Base de dato ...',pre_barrio_exist)
+            if isinstance(pre_barrio_exist, int):
+                pre_barrio = True
+                
+        # en caso de tener mas columnas aqui se seleccionarian los valores
+
+        # finalmente tomar una decision en que barrio y ciudad colocar 
+        if len(total_asign) == 1:
+            # si las otras fuentes de datos estan vacias colocar fijo esta opción
+            ciudad = str(np.squeeze(list(total_asign.keys())))
+            if len(matches_found) == 0 and pre_barrio:
+                dir = dir + str(', '+ciudad.lower())
+                #print('Opción 1 {}'.format(dir))
+
+            elif len(matches_found) == 0 and ~pre_barrio:
+                # hay informacion desde base de datos
+                if ciudad.lower()==pre_barrio_exist.strip().lower():
+                    # esta comparacion deberia ser ciudad ciudad y barrio barrio pero no viene toda la info
+                    dir = dir + str(', '+ciudad.lower()) 
+                    #print('Opción 2 {}'.format(dir))
+                    #print('opcion 2')
+                else:
+                    # quizas si viene un barrio en base de datos que coincida con un barrio encontrado
+                    if pre_barrio_exist.strip().lower() in total_asign[ciudad]:
+                        dir = dir + str(', '+ciudad.lower())
+                        #print('Opción 3 {}'.format(dir))
+
+                    else: # en ultimas colocar las dos
+                        if len(re.findall(re.compile(pre_barrio_exist.strip(), re.IGNORECASE), dir))==0: # para que no repita información
+                            #print(dir)
+                            dir = dir + str(', '+pre_barrio_exist.lower() + ', '+ciudad.lower())  
+                            #print('Opción 4 {}'.format(dir))
+
+                        else:
+                            dir = dir + str(', '+ciudad.lower())  
+                            #print('Opción 4 b {}'.format(dir)) 
+            
+            elif len(matches_found) != 1 and ~pre_barrio: # hay info en las 3 opciones
+                if matches_found[0].lower()==pre_barrio_exist.strip().lower()==ciudad[0].lower():
+                    #print(dir)
+                    dir = dir + str(', '+ciudad.lower())
+                    #print('Opción 5 {}'.format(dir))
+                        
+                elif matches_found[0].lower()==pre_barrio_exist.strip().lower(): #si la diferente es lo de la direccion ignorar
+                    #print(dir)
+                    dir = dir + str(', '+pre_barrio_exist.lower())    
+                    #print('Opción 6 {}'.format(dir))
+
+            else:
+                pass        
+
+        elif len(total_asign) > 1: # # TODO decidir que hacer con multiples coincidencias
+            # analizar si hay algo en base de datos y en coincidencias
+            ciudades = list(total_asign.keys())
+            if len(matches_found) != 0 and pre_barrio:
+                # seleccionar el que mas veces se repite en las listas
+                names, counts = np.unique(ciudades, return_counts=True)
+                votos = names[np.argsort(counts)][::-1] # ordenar mayor a menor
+                if len(re.findall(re.compile(votos[0].lower().strip(), re.IGNORECASE), dir))==0: # para no repetir info
+                    #print(dir)
+                    dir = dir + str(', '+votos[0].lower())    
+                    #print(total_asign, ciudades)
+                    #print('Opción 9 multi {}'.format(dir))
+
+            elif len(matches_found) != 0 and ~pre_barrio:
+                # seleccionar una opcion de las ciudades que encontro
+                names, counts = np.unique(ciudades+matches_found, return_counts=True)
+                votos = names[np.argsort(counts)][::-1] # ordenar mayor a menor
+                seleccion = votos[0]#
+                if ~(seleccion.lower()==pre_barrio_exist.lower()):
+                    dir = dir + str(', '+pre_barrio_exist+', '+seleccion.lower()) 
+
+                else:
+                    dir = dir + str(', '+seleccion.lower())   
+
+            elif len(matches_found) == 0 and pre_barrio:
+                names, counts = np.unique(ciudades+matches_found, return_counts=True)
+                votos = names[np.argsort(counts)][::-1] # ordenar mayor a menor
+                seleccion = votos[0]
+                dir = dir + str(', '+seleccion.lower())
+
+            else:
+                seleccion = np.random.choice(ciudades,1)
+                dir = dir + str(', '+seleccion[0].lower())
+
+        else:# cuando es cero
+            if len(matches_found) == 0 and pre_barrio: # No hay ninguna información
+                if dir!='nan' and dir!='sin informacion' and len(dir)>=3:
+                    dir = dir + str(', bucaramanga')
+                    #print('Opción 7 {}'.format(dir))
+                else :
+                    dir = np.nan    
+                    #print('Opción nan {}'.format(dir))
+            elif len(matches_found) == 0 and ~pre_barrio: # colocar lo que esta desde base de datos
+                # esta opcion se deberia considerar eliminar porque puede ser que no hay ningun patron
+                # debido a que estan mal escritos los barrios
+                if len(re.findall(re.compile(pre_barrio_exist.strip(), re.IGNORECASE), dir))==0:
+                    # buscar esa info a que ciudad pertenece
+                    ciudad_result = buscar_pertenencia(pre_barrio_exist.strip(), df_bucaramanga, df_floridablanca, df_giron)   
+                    if len(ciudad_result) == 1:
+                        # si las otras fuentes de datos estan vacias colocar fijo esta opción
+                        ciudad_result = str(np.squeeze(list(ciudad_result.keys())))
+                        if pre_barrio_exist.strip().lower() != ciudad_result.strip().lower():
+                            dir = dir + str(', '+pre_barrio_exist.lower() + ', '+ciudad_result)
+                        else:
+                            # buscar si hay una ciudad ya en la direccion
+                            dir = dir + str(', '+pre_barrio_exist.lower())
+                            matches_found = re.findall(pattern_general, dir)
+                            if len(matches_found)==0:
+                                dir = dir + str(', bucaramanga')
+                            #print('Opción 8 {}'.format(dir))
+
+                    elif len(ciudad_result) > 1:
+                        # TODO decidir que hacer con multiples coincidencias
+                        #print(dir, ciudad_result)
+                        dir = dir + str(', '+pre_barrio_exist.lower() + ', '+np.random.choice(list(ciudad_result.keys()),1)[0].lower())
+                        #print('Opción 8 b: {}'.format(dir))
+                    else:
+                        # buscar si hay una ciudad ya en la direccion
+                        dir = dir + str(', '+pre_barrio_exist.lower())
+                        matches_found = re.findall(pattern_general, dir)
+                        if len(matches_found)==0:
+                                dir = dir + str(', bucaramanga')
+                else:
+                    dir = dir + str(', bucaramanga')                
+    else:# se puede decir que coloque el municipio
+        dir = np.nan
+    #print('-->',dir)                           
     return dir
 
 ##### GEOPOSICIONAR
@@ -366,7 +475,7 @@ def buscar_barrio(path_bucaramanga,
                         collect_intersections_bar[j] = name 
                         break
                 # busca el barrio mas cercano solo si es zona metropolitana TODO
-                # valida si hay algo en la cidad de argis y que no se halla encontrado barrio por poly
+                # valida si hay algo en la ciudad de argis y que no se halla encontrado barrio por poly
                 if collect_intersections_bar[j] == None and ciudad_geo != None:
                     # aqui solo mando a buscar el más cercano en bucaramanga 
                     if str(ciudad_geo).lower() == 'bucaramanga':
@@ -434,16 +543,6 @@ def buscar_comuna(result, division_politica_bucaramanga):
     return result   
 
 ### DIVISION METROPOLITANA DE BUCARAMANGA
-def pattern(division_politica):
-    barrios = division_politica.BARRIO.str.strip().values.tolist()
-    sectores = division_politica[~division_politica.SECTOR.isnull()].SECTOR.values.tolist()
-    conjuntos = division_politica[~division_politica.CONJUNTO.isnull()].CONJUNTO.values.tolist()
-    conjuntos = [j.strip() for i in conjuntos for j in i.split(',')]
-    sectores = [j.strip() for i in sectores for j in i.split(',')]
-    todos = barrios + sectores + conjuntos  
-    #pattern = re.compile(r'|'.join([i for i in todos]), re.IGNORECASE)
-    return ['\s+'+i for i in todos]
-
 ### EJECUTAR EL SCRIPT
 # CAPTURAR LOS PARAMETROS DE DIRECCIONES
 # de este txt sacar las direcciones de los archivos
@@ -460,6 +559,7 @@ df_addresses = pd.read_excel(addresses_path, sheet_name='Hoja1')
 # ejecutar funcion de filtrado
 print('Limpiando direcciónes ....')
 df_addresses['dir_filtradas'] = df_addresses.dir_res_.apply(lambda x: filtering(x)).values
+print('Limpiado de direcciones finalizado ...')
 ##### TODO: ESTE PASO PODRIA SER UN MODELO DE MACHINE
 ## identificar y colocar el municipio
 division_politica_bucaramanga = pd.read_excel(path_pol, sheet_name='DIVISION_POLITICA_BUCARAMANGA')
@@ -468,23 +568,16 @@ division_politica_giron = pd.read_excel(path_pol, sheet_name='DIVISION_POLITICA_
 division_politica_piedecuesta = pd.read_excel(path_pol, sheet_name='DIVISION_POLITICA_PIEDECUESTA')
 division_politica_general = pd.read_excel(path_pol, sheet_name='CIUDADES')
 # PATTERNS
-# BUCARAMANGA
-lista_bucaramanga = pattern(division_politica_bucaramanga)
-# FLORIDABLANCA
-lista_floridablanca = pattern(division_politica_floridablanca)
-# PIEDECUESTA
-#pattern_piedecuesta = pattern(division_politica_piedecuesta, ciudades, ciudad='piedecuesta')
-# GIRON
-lista_giron = pattern(division_politica_giron)
-#pattern_giron = pattern(division_politica_giron, ciudades, ciudad='giron')
 # pattern en general para considerar ciudades de otros lugares del país
-pattern_general = re.compile(r'|'.join(division_politica_general.CIUDADES.values.tolist()), re.IGNORECASE)
+pattern_general_ = re.compile(r'|'.join(division_politica_general.CIUDADES.values.tolist()+['floridablanca', 'bucaramanga', 'giron']), re.IGNORECASE)
+# Ejecutar la función para aplicar todos los filtros para tratar de identificar en que ciudad podria estar
 df_addresses['dir_filtradas'] = df_addresses.dir_filtradas.apply(lambda x: where_is(x,
                                                                                     df_addresses,
-                                                                                    lista_bucaramanga,
-                                                                                    lista_floridablanca,
-                                                                                    lista_giron,
-                                                                                    pattern_general)).values
+                                                                                    division_politica_bucaramanga,
+                                                                                    division_politica_floridablanca,
+                                                                                    division_politica_giron,
+                                                                                    pattern_general_)).values
+# Guardar un archivo temporal
 try:
     df_addresses.to_excel('check_point.xlsx', index=False)
 except:
@@ -506,7 +599,7 @@ result = buscar_barrio(path_poligonos_bucaramanga,
                   path_poligonos_floridablanca,
                   path_poligonos_giron,
                   path_poligonos_piedecuesta,
-                  pattern_general,
+                  pattern_general_,
                   arcgis)
 try:
     result.to_excel('check_point_geo_barrio.xlsx', index=False)
@@ -535,6 +628,7 @@ result.loc[result.bar_ver_.isnull(),'bar_ver_'] = 'SIN INFORMACION'
 result.loc[result._bar_ver_.isnull(),'_bar_ver_'] = 'SIN INFORMACION'
 result.loc[result.NOMCOMUNA.isnull(),'NOMCOMUNA'] = 0
 result.loc[result['NUMERO COMUNA'].isnull(),'NUMERO COMUNA'] = 0
+result['DIR'] = result['dir_filtradas']
 # Eliminar las columnas temporales para devolver solo el formato solicitado
 del result['tem']
 try:
