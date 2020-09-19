@@ -8,7 +8,7 @@ En la carpeta files pueden consultar el excel "direcciones_ejemplo.xlsx" con la 
 
 Total registros analizados 472  
 1. Registros vacíos = 43/472 = 9%    
-2. Aciertos = 273/472 = 58% (63% eliminando registros vacios)    
+2. Aciertos = 273/472 = 58% (63% eliminando registros vacíos)    
 3. Aciertos parciales = 23/472 = 5% (Asignados a la misma comuna pero a barrios aledaños en su mayoría - error posible en el polígono)    
 4. Errores = 72/472 = 15% (Dirección proporcionada pero ubicación totalmente errada - complejidad en la información)   
 5. Errores por insuficiencia 30/472 = 6% (Error causado por insuficiente información en la dirección)   
