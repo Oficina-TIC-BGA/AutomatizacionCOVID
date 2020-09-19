@@ -11,7 +11,7 @@ Total registros analizados 472
 2. Aciertos = 273/472 = 58%  
 3. Aciertos parciales = 23/472 = 5%   
 4. Errores = 72/472 = 15%  
-5. No encontradas = 32/472 = 7%    
-6. Errores por insuficiencia 30/472 = 6%   
+5. Errores por insuficiencia 30/472 = 6%  
+6. No encontradas = 32/472 = 7%     
 
 ---
