@@ -14,4 +14,4 @@ Total registros analizados 472
 5. No encontradas = 32/472 = 7%    
 6. Errores por insuficiencia 30/472 = 6%   
 
-__
+---
