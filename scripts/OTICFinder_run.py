@@ -38,23 +38,23 @@ def filtering(dir):
     # definir las palabras comunes para tratar de estandarizar las direcciones
     # TODO: Resumir expresiones regulares
     common_words = {} 
-    common_words['carrera'] = ['\bK','KRA', 'CRA', 'KR', '\s*CR\s', '\s*carre\s','ARRERA', 'CARRRERA', 'CARRRA', 'CRR','CARERRA', '\s*CARR\s', '\s*carr\s', '\s*CRARREA\s','CARRERA']
+    common_words['carrera'] = ['\bK','KRA', 'CDRA\s','CRA', 'KR', '\s*CR\s', '\s*carre\s','ARRERA', 'CARRRERA', 'CARRRA', 'CRR','CARERRA', '\s*CARR\s', '\s*carr\s', '\s*CRARREA\s','CARRERA']
     common_words['calle'] = ['CLL', 'CL', 'CLEE', 'CLLE', '\s*CALL\s','\s*CC\s']
     common_words['diagonal'] = ['DIAG\s', 'DIAGONAL', 'DG', '\sDIG\s']
-    common_words['transversal'] = ['TRANSVERSAL', '\sTR\s','TRV','TRANSV', 'TV', 'TRANVERSAL', 'TRANSV', 'TRANSSV\s','TRASVERSAL', 'TRANV', 'TANSVERSAL', 'TRANVS', '\s*trans\s']
+    common_words['transversal'] = ['TRANSVERSAL','trns\s', '\sTR\s','TRV','TRANSV', 'TV', 'TRANVERSAL', 'TRANSV', 'TRANSSV\s','TRASVERSAL', 'TRANV', 'TANSVERSAL', 'TRANVS', '\s*trans\s']
     common_words['numero'] = ['\bNUM\b', '\sNUM\s', 'NUMERO', 'NMERO', 'NÚMERO', '#', '\sNO\s', 'NRO', 'Nª','Nº','N°']
     common_words['circunvalar'] = ['VIRCUNVALAR','CIRCUNVALAR', '\sCIRC\s', '\sCIR\s', 'CCV', 'CV', 'circunvalarv', 'CIRCCUN\s']
     common_words['avenida'] = ['AV\s+', 'AVENIDA', '\sAVD\s','AVDA', 'AVEN\s', 'avn', '\svda\s', '\savd\s']
     common_words['quebradaseca'] = ['qdaseca', 'quebrada seca', 'quebrada']
     common_words['edificio'] = ['edif*\s', 'edf', 'edificio', '\sedi\s']
     common_words['torre'] = ['tprre\s','\storr*\s', '\stor\s', '\sto\s', '\str\s', '\st\s']
-    common_words['barrio'] = ['\sbrr', '\sbario\s','barrio','BARRIO', '\sbr\s', '\sbarri\s']
+    common_words['barrio'] = ['\sbrr', '\sbario\s','barrio','BARRIO', '\sbr\s', '\sbarri\s','\sbrr\s']
     common_words['apartamento'] = ['\sAPTO\s', '\sAPP\s' ,'APTO ','\sAPTO', 'ap\s', 'aparatamento','apartamento*', 'apar\s','apart\s', 'APRO\s', '\sapato', '\sapt', '\bAPTO\b', '\saparta\s']
     common_words['bloque'] = ['BLOQUE', '\sblo\s', '\sbloq\s']
     common_words['sector'] = ['SECTOR', '\ssect\s', '\ssec\s'] 
     common_words['kilometro'] = ['KM\s*', 'KILOMETRO', 'KM ']
     common_words['vereda'] = ['\s*VDA\s', '\s*VER\s', '\sBEREDA\s']
-    common_words['urbanizacion'] = ['URBANIZAC', 'URBANIZACION', 'URBANIZACIÓN']
+    common_words['urbanizacion'] = ['URBANIZAC\s', 'URBANIZACION', 'URBANIZACIÓN', 'urb']
     common_words['manzana'] = ['\s*MANZANA\s','\s*mz\s*\d+', '\s*mz\s', '\s]mz\s*[a-z]', '\s*manza\s', '\s*manz\s']
 
     # definir los patrones con las expresiones regulares
@@ -80,7 +80,7 @@ def filtering(dir):
     pattern_final = re.compile(r'barrio|primer piso\s*|peatonal\s*\d+|manzana\s*\d+|t\d+|casa\s*\d+|piso\s*\d+|apartamento\s*\d+|torre\s*\d+', re.IGNORECASE)
     pattern_final2 = re.compile(r'conjunto residencial|torre\s[a-z]*|edificio|edificio\s*\d+|bloque\s*\d+|apartamento|manzana\s*\d+|manzana\s*[a-z]|sector\s*\d+', re.IGNORECASE)
     pattern_final3 = re.compile(r'conjunto|conj|conjunto\s*residen|segundo piso|sin dato|ninguno|direccion|local\s*\d*|piso|sector\s*[a-z]', re.IGNORECASE)
-    pattern_final4 = re.compile(r'2DO|1RO|1ERO|NO ENCONTRADO|ENTRADA|PI\s*\d*|ninguno|ninguna|urbanizacion', re.IGNORECASE)
+    pattern_final4 = re.compile(r'2DO|1RO|1ERO|NO ENCONTRADO|ENTRADA|PI\s+\d*|ninguno|ninguna|urbanizacion', re.IGNORECASE)
     #pattern_final = re.compile(r'(\s[a-z\s*]*\s*)', re.IGNORECASE)
     pattern_barrio = re.compile(r'|'.join(common_words['barrio']), re.IGNORECASE)
     pattern_std = re.compile(r'carrera|calle|avenida|diagonal|transversal|circunvalar')
@@ -540,7 +540,14 @@ def buscar_comuna(result, division_politica_bucaramanga):
                 #if result.iloc[j,12].lower()!='bucaramanga':
                 comunas.append(None)  
     result.COMUNA = comunas          
-    return result   
+    return result 
+
+def filternan(x):
+    if len(str(x))<=5:
+        r = 'nan'
+    else:
+        r = x
+    return r              
 
 ### DIVISION METROPOLITANA DE BUCARAMANGA
 ### EJECUTAR EL SCRIPT
@@ -559,6 +566,7 @@ df_addresses = pd.read_excel(addresses_path, sheet_name='Hoja1')
 # ejecutar funcion de filtrado
 print('Limpiando direcciónes ....')
 df_addresses['dir_filtradas'] = df_addresses.dir_res_.apply(lambda x: filtering(x)).values
+df_addresses['dir_filtradas'] = df_addresses['dir_filtradas'].apply(lambda x: filternan(x)).values
 print('Limpiado de direcciones finalizado ...')
 ##### TODO: ESTE PASO PODRIA SER UN MODELO DE MACHINE
 ## identificar y colocar el municipio
