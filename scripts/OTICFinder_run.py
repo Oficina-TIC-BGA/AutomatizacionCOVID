@@ -50,7 +50,7 @@ def filtering(dir):
     common_words['torre'] = ['tprre\s','\storr*\s', '\stor\s', '\sto\s', '\str\s', '\st\s']
     common_words['barrio'] = ['\sbrr', '\sbario\s','barrio','BARRIO', '\sbr\s', '\sbarri\s','\sbrr\s']
     common_words['apartamento'] = ['\sAPTO\s', '\sAPP\s' ,'APTO ','\sAPTO', 'ap\s', 'aparatamento','apartamento*', 'apar\s','apart\s', 'APRO\s', '\sapato', '\sapt', '\bAPTO\b', '\saparta\s']
-    common_words['bloque'] = ['BLOQUE', '\sblo\s', '\sbloq\s']
+    common_words['bloque'] = ['BLOQUE', '\sblo\s', '\s*bloq\s']
     common_words['sector'] = ['SECTOR', '\ssect\s', '\ssec\s'] 
     common_words['kilometro'] = ['KM\s*', 'KILOMETRO', 'KM ']
     common_words['vereda'] = ['\s*VDA\s', '\s*VER\s', '\sBEREDA\s']
@@ -513,6 +513,9 @@ def buscar_barrio(path_bucaramanga,
     datos_bucaramanga = pd.read_csv(path_bucaramanga)
     datos_todos_bucaramanga = datos_bucaramanga[datos_bucaramanga.CATEGORIA.isin(['BARRIO', 'VEREDA','A. URBANO', 'A. RURAL'])]
     ###### Floridablanca #########################
+    datos_floridablanca = pd.read_csv(path_floridablanca)
+    # en floridablanca solo se va a considerar barrios
+    datos_todos_floridablanca = datos_floridablanca[datos_floridablanca.CATEGORIA.isin(['BARRIO', 'VEREDA'])]
     ###### GIRON #########################
     ###### PIEDECUESTA #########################
     #---------------------------------------------
@@ -522,7 +525,8 @@ def buscar_barrio(path_bucaramanga,
     # buscar barrio por poligono
     # pasarle todos los barrios
     # por ahora solo le paso los de bucaramanga despues sera la concatenación de todos
-    result = buscar_solo_barrio(datos_todos_bucaramanga, arcgis)
+    datos_todos = pd.concat([datos_todos_bucaramanga, datos_todos_floridablanca], ignore_index=True)
+    result = buscar_solo_barrio(datos_todos, arcgis)
 
     return result 
 
@@ -531,7 +535,7 @@ def buscar_comuna(result, division_politica_bucaramanga):
     for bn in tqdm(result['barrio_poly'].str.lower(), desc='Comunas'):
         com = division_politica_bucaramanga.COMUNA[division_politica_bucaramanga['BARRIO'].str.lower()==bn].values
         if len(com)!=0:
-            comunas.append(com[0])
+            comunas.append(com[0].upper())
         else:
             if bn!=None:
                 comunas.append(bn.upper())
@@ -543,7 +547,7 @@ def buscar_comuna(result, division_politica_bucaramanga):
     return result 
 
 def filternan(x):
-    if len(str(x))<=5:
+    if len(str(x))<10:
         r = 'nan'
     else:
         r = x
@@ -575,6 +579,8 @@ division_politica_floridablanca = pd.read_excel(path_pol, sheet_name='DIVISION_P
 division_politica_giron = pd.read_excel(path_pol, sheet_name='DIVISION_POLITICA_GIRON')
 division_politica_piedecuesta = pd.read_excel(path_pol, sheet_name='DIVISION_POLITICA_PIEDECUESTA')
 division_politica_general = pd.read_excel(path_pol, sheet_name='CIUDADES')
+# concatenar las divisiones politicas a buscar comuna
+todos_div_pol = pd.concat([division_politica_bucaramanga, division_politica_floridablanca], ignore_index=True)
 # PATTERNS
 # pattern en general para considerar ciudades de otros lugares del país
 pattern_general_ = re.compile(r'|'.join(division_politica_general.CIUDADES.values.tolist()+['floridablanca', 'bucaramanga', 'giron']), re.IGNORECASE)
@@ -615,7 +621,7 @@ except:
     result.to_csv('check_point_geo_barrio.csv', index=False)
 print('Buscando (comunas)...')
 # por ahora solo se hace la busqueda para bucaramanga
-result = buscar_comuna(result, division_politica_bucaramanga)  
+result = buscar_comuna(result, todos_div_pol)  
 try:
     result.to_excel('check_point_geo_barrio_comuna.xlsx', index=False)
 except:
@@ -627,8 +633,8 @@ result.loc[result.NOMCOMUNA.isnull(),'NOMCOMUNA'] = result.loc[result.NOMCOMUNA.
 result.loc[result.tem.isnull(),'NUMERO COMUNA'] = None
 result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'COMUNA'] = result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'ciudad_geo'].str.upper()
 result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'NOMCOMUNA'] = result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'ciudad_geo'].str.upper()
-result._bar_ver_= result.barrio_poly
-result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), '_bar_ver_'] = result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'ciudad_geo'].str.upper()
+result._bar_ver_= result.barrio_poly.str.upper() 
+result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), '_bar_ver_'] = result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), 'ciudad_geo'].str.upper()
 # sin no hay comuna se debe devolver sin informacion
 # de igual manera para las columnas de barrios y ceros para las del numero
 result.loc[result.COMUNA.isnull(),'COMUNA'] = 'SIN INFORMACION'
