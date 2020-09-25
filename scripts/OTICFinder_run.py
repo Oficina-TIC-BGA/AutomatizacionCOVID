@@ -631,8 +631,8 @@ result[['NUMERO COMUNA','NOMCOMUNA']] =  result.COMUNA.str.split(".",expand=True
 result['tem'] = result.NOMCOMUNA
 result.loc[result.NOMCOMUNA.isnull(),'NOMCOMUNA'] = result.loc[result.NOMCOMUNA.isnull(),'NUMERO COMUNA']
 result.loc[result.tem.isnull(),'NUMERO COMUNA'] = None
-result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'COMUNA'] = result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'ciudad_geo'].str.upper()
-result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'NOMCOMUNA'] = result.loc[~(result.ciudad_geo.isnull())&(result.ciudad_geo!='Bucaramanga'), 'ciudad_geo'].str.upper()
+result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), 'COMUNA'] = result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), 'ciudad_geo'].str.upper()
+result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), 'NOMCOMUNA'] = result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), 'ciudad_geo'].str.upper()
 result._bar_ver_= result.barrio_poly.str.upper() 
 result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), '_bar_ver_'] = result.loc[~(result.ciudad_geo.isnull())&(~(result.ciudad_geo.isin(['Bucaramanga', 'Floridablanca']))), 'ciudad_geo'].str.upper()
 # sin no hay comuna se debe devolver sin informacion
