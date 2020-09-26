@@ -7,20 +7,20 @@ En la carpeta files pueden consultar el excel "direcciones_ejemplo.xlsx" con la 
 **1 Revisión de rendimiento día 16 de septiembre 2020 - 16 septiembre**
 
 Total registros analizados 472  
-1. Registros vacíos = 43/472 = 9%    
-2. Aciertos = 273/472 = 58% (63% eliminando registros vacíos)    
-3. Aciertos parciales = 23/472 = 5% (Asignados a la misma comuna pero a barrios aledaños en su mayoría - error posible en el polígono)    
-4. Errores = 72/472 = 15% (Dirección proporcionada pero ubicación totalmente errada - complejidad en la información)   
+1. Registros vacíos o casi vacíos = 43/472 = 9%   (azules)    
+2. Aciertos = 273/472 = 58% (63% eliminando registros vacíos)  (verdes)    
+3. Aciertos parciales = 23/472 = 5% (Asignados a la misma comuna pero a barrios aledaños en su mayoría - error posible en el polígono) (Naranja)      
+4. Errores = 72/472 = 15% (Dirección proporcionada pero ubicación totalmente errada - complejidad en la información) (rojo)         
 5. Errores por insuficiencia 30/472 = 6% (Error causado por insuficiente información en la dirección)   
 6. No encontradas = 32/472 = 7%  (Dirección muy corrupta)     
 
 **2 Revisión de rendimiento día 16 de septiembre 2020 - 24 septiembre**
 
 Total registros analizados 472  
-1. Registros vacíos = /472 = %    
-2. Aciertos = /472 = % (% eliminando registros vacíos)    
-3. Aciertos parciales = /472 = % (Asignados a la misma comuna pero a barrios aledaños en su mayoría - error posible en el polígono)    
-4. Errores = /472 = % (Dirección proporcionada pero ubicación totalmente errada - complejidad en la información)   
-5. Errores por insuficiencia /472 = % (Error causado por insuficiente información en la dirección)   
-6. No encontradas = /472 = %  (Dirección muy corrupta)  
+1. Registros vacíos o casi vacíos = 52/472 = 11%   (azules)   
+2. Aciertos = 281/472 = 59% (66% eliminando registros vacíos)  (verdes)    
+3. Aciertos parciales = 24/472 = 5% (Asignados a la misma comuna pero a barrios aledaños en su mayoría - error posible en el polígono) (Naranja)      
+4. Errores = 62/472 = 13% (Dirección proporcionada pero ubicación totalmente errada - complejidad en la información) (rojo)     
+5. Errores por insuficiencia 20/472 = 4% (Error causado por insuficiente información en la dirección)   
+6. No encontradas = 33/472 = 7%  (Dirección muy corrupta)  
 ---
