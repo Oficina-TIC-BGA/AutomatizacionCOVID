@@ -408,8 +408,13 @@ def buscar_barrio(path_bucaramanga,
             r = x['score']
         elif isinstance(x, str):    
             r = eval(x)['score']        
-        elif np.isnan(x): 
-            r = 0.0   
+        else:
+            try: 
+                var = np.isnan(x) 
+                r = 0.0
+            except:
+                print(x)
+                r = 0.0      
         return r 
 
     def buscar_cercano(point_xy, datos, key='NOMBRE'):
