@@ -38,24 +38,24 @@ def filtering(dir):
     # definir las palabras comunes para tratar de estandarizar las direcciones
     # TODO: Resumir expresiones regulares
     common_words = {} 
-    common_words['carrera'] = ['\bK','KRA', 'CDRA\s','CRA', 'KR', '\s*CR\s', '\s*carre\s','ARRERA', 'CARRRERA', 'CARRRA', 'CRR','CARERRA', '\s*CARR\s', '\s*carr\s', '\s*CRARREA\s','CARRERA']
-    common_words['calle'] = ['CLL', 'CL', 'CLEE', 'CLLE', '\s*CALL\s','\s*CC\s']
+    common_words['carrera'] = ['carrear\s','carrea\s','\bK','KRA', 'CDRA\s','CRA', 'KR', '\s*CR\s', '\s*carre\s','ARRERA', 'CARRRERA', 'CARRRA', 'car\s','CRR','CARERRA', '\s*CARR\s', '\s*carr\s', '\s*CRARREA\s','CARRERA']
+    common_words['calle'] = ['CLL', 'CL', 'CLEE', '\s*CALL\s','\s*CC\s', 'CLLE', 'cale\s']
     common_words['diagonal'] = ['DIAG\s', 'DIAGONAL', 'DG', '\sDIG\s']
     common_words['transversal'] = ['TRANSVERSAL','trns\s', '\sTR\s','TRV','TRANSV', 'TV', 'TRANVERSAL', 'TRANSV', 'TRANSSV\s','TRASVERSAL', 'TRANV', 'TANSVERSAL', 'TRANVS', '\s*trans\s']
     common_words['numero'] = ['\bNUM\b', '\sNUM\s', 'NUMERO', 'NMERO', 'NÚMERO', '#', '\sNO\s', 'NRO', 'Nª','Nº','N°']
-    common_words['circunvalar'] = ['VIRCUNVALAR','CIRCUNVALAR', '\sCIRC\s', '\sCIR\s', 'CCV', 'CV', 'circunvalarv', 'CIRCCUN\s']
+    common_words['circunvalar'] = ['CIRCUMBALAN\s','CIRCUMBALAR\s','circunvalara','VIRCUNVALAR','CIRCUNVALAR', '\sCIRC\s', '\sCIR\s', 'CCV', 'CV', 'circunvalarv', 'CIRCCUN\s', 'circircunvalar\s']
     common_words['avenida'] = ['AV\s+', 'AVENIDA', '\sAVD\s','AVDA', 'AVEN\s', 'avn', '\svda\s', '\savd\s']
     common_words['quebradaseca'] = ['qdaseca', 'quebrada seca', 'quebrada']
     common_words['edificio'] = ['edif*\s', 'edf', 'edificio', '\sedi\s']
     common_words['torre'] = ['tprre\s','\storr*\s', '\stor\s', '\sto\s', '\str\s', '\st\s']
     common_words['barrio'] = ['\sbrr', '\sbario\s','barrio','BARRIO', '\sbr\s', '\sbarri\s','\sbrr\s']
-    common_words['apartamento'] = ['\sAPTO\s', '\sAPP\s' ,'APTO ','\sAPTO', 'ap\s', 'aparatamento','apartamento*', 'apar\s','apart\s', 'APRO\s', '\sapato', '\sapt', '\bAPTO\b', '\saparta\s']
+    common_words['apartamento'] = ['\sAPTO\s', '\sAPP\s' ,'APTO ','\sAPTO', 'ap\s', 'aparatamento','apartamento*', 'apar\s','apart\s', 'APRO\s', '\sapato', '\sapt', '\bAPTO\b', '\saparta\s', '\sapartame\s']
     common_words['bloque'] = ['BLOQUE', '\sblo\s', '\s*bloq\s']
     common_words['sector'] = ['SECTOR', '\ssect\s', '\ssec\s'] 
     common_words['kilometro'] = ['KM\s*', 'KILOMETRO', 'KM ']
     common_words['vereda'] = ['\s*VDA\s', '\s*VER\s', '\sBEREDA\s']
     common_words['urbanizacion'] = ['URBANIZAC\s', 'URBANIZACION', 'URBANIZACIÓN', 'urb']
-    common_words['manzana'] = ['\s*MANZANA\s','\s*mz\s*\d+', '\s*mz\s', '\s]mz\s*[a-z]', '\s*manza\s', '\s*manz\s']
+    common_words['manzana'] = ['\s*MANZANA\s','\s*mz\s*\d+', '\s*mz\s', '\smz\s*[a-z]', '\s*manza\s', '\s*manz\s']
 
     # definir los patrones con las expresiones regulares
     pattern_numeros = re.compile(r'\d\s*[A-Z]\s*#', re.IGNORECASE)
@@ -74,13 +74,14 @@ def filtering(dir):
     pattern_sector = re.compile(r'|'.join(common_words['sector']), re.IGNORECASE)
     pattern_urbanizacion = re.compile(r'|'.join(common_words['urbanizacion']), re.IGNORECASE)
     pattern_kilometro = re.compile(r'|'.join(common_words['kilometro']), re.IGNORECASE)
+    pattern_manzana = re.compile(r'|'.join(common_words['manzana']), re.IGNORECASE)
     pattern_guion = re.compile(r'-|\.|·|º|°')#|Nª|º|°
     pattern_nume2 = re.compile(r'\sNO\d|\sNUM\d', re.IGNORECASE)
     pattern_nume3 = re.compile(r'\dNO\d|\dNUM\d', re.IGNORECASE)
     pattern_final = re.compile(r'barrio|primer piso\s*|peatonal\s*\d+|manzana\s*\d+|t\d+|casa\s*\d+|piso\s*\d+|apartamento\s*\d+|torre\s*\d+', re.IGNORECASE)
     pattern_final2 = re.compile(r'conjunto residencial|torre\s[a-z]*|edificio|edificio\s*\d+|bloque\s*\d+|apartamento|manzana\s*\d+|manzana\s*[a-z]|sector\s*\d+', re.IGNORECASE)
-    pattern_final3 = re.compile(r'conjunto|conj|conjunto\s*residen|segundo piso|sin dato|ninguno|direccion|local\s*\d*|piso|sector\s*[a-z]', re.IGNORECASE)
-    pattern_final4 = re.compile(r'2DO|1RO|1ERO|NO ENCONTRADO|ENTRADA|PI\s+\d*|ninguno|ninguna|urbanizacion', re.IGNORECASE)
+    pattern_final3 = re.compile(r'conjunto|conj|conjunto\s*residen|segundo piso|sin dato|ninguno|direccion|local\s*\d*|piso|sector\s*[a-z]|manzana', re.IGNORECASE)
+    pattern_final4 = re.compile(r'2DO|1RO|1ERO|NO ENCONTRADO|ENTRADA|PI\s+\d*|ninguno|ninguna|urbanizacion|casa\s[a-z]', re.IGNORECASE)
     #pattern_final = re.compile(r'(\s[a-z\s*]*\s*)', re.IGNORECASE)
     pattern_barrio = re.compile(r'|'.join(common_words['barrio']), re.IGNORECASE)
     pattern_std = re.compile(r'carrera|calle|avenida|diagonal|transversal|circunvalar')
@@ -113,9 +114,9 @@ def filtering(dir):
     # cambia los patrones por su forma correcta y agrega espacios para separar        
     patterns = [pattern_carrera, pattern_calle, pattern_diagonal, pattern_transversal, pattern_num, pattern_circunvalar, 
                 pattern_avenida, pattern_quebradaseca, pattern_edificio, pattern_torre, pattern_apartamento, pattern_bloque, pattern_sector,
-                pattern_kilometro, pattern_barrio, pattern_urbanizacion]
+                pattern_kilometro, pattern_barrio, pattern_urbanizacion, pattern_manzana]
     for pattern, p in zip(patterns,[' carrera ', ' calle ', ' diagonal ', ' transversal ', ' ', 'circunvalar', 'avenida', 'quebradaseca', 'edificio',
-                                    ' torre ', ' apartamento ', ' bloque ', ' sector ', ' kilometro ', ' barrio ', ' urbanizacion ']):
+                                    ' torre ', ' apartamento ', ' bloque ', ' sector ', ' kilometro ', ' barrio ', ' urbanizacion ', ' manzana ']):
         matches = re.finditer(pattern, dir)
         if matches:
             for match in matches:
@@ -604,7 +605,7 @@ df_addresses['dir_filtradas'] = df_addresses.dir_filtradas.apply(lambda x: where
 try:
     df_addresses.to_excel('check_point.xlsx', index=False)
 except:
-    df_addresses.to_csv('check_point.csv', index=False)
+    df_addresses.to_csv('check_point.csv', index=False, encoding='latin1')
 ## Buscar coordenadas 
 print('Geoposicionando ...')
 # ArcGIS - la mejor opción a google
@@ -614,7 +615,7 @@ arcgis = search(geolocator_arcgis, df_addresses)
 try:
     arcgis.to_excel('check_point_geo.xlsx', index=False)
 except:
-    arcgis.to_csv('check_point_geo.csv', index=False)
+    arcgis.to_csv('check_point_geo.csv', index=False, encoding='latin1')
     
 # buscar el barrio con las coordenadas
 print('Cruzando información de polígonos (barrios)...')
@@ -627,14 +628,14 @@ result = buscar_barrio(path_poligonos_bucaramanga,
 try:
     result.to_excel('check_point_geo_barrio.xlsx', index=False)
 except:
-    result.to_csv('check_point_geo_barrio.csv', index=False)
+    result.to_csv('check_point_geo_barrio.csv', index=False, encoding='latin1')
 print('Buscando (comunas)...')
 # por ahora solo se hace la busqueda para bucaramanga
 result = buscar_comuna(result, todos_div_pol)  
 try:
     result.to_excel('check_point_geo_barrio_comuna.xlsx', index=False)
 except:
-    result.to_csv('check_point_geo_barrio_comuna.csv', index=False)
+    result.to_csv('check_point_geo_barrio_comuna.csv', index=False, encoding='latin1')
 print('Creando estructura final ...')
 result[['NUMERO COMUNA','NOMCOMUNA']] =  result.COMUNA.str.split(".",expand=True)
 result['tem'] = result.NOMCOMUNA
@@ -657,7 +658,7 @@ del result['tem']
 try:
     result.to_excel('check_point_pre_final.xlsx', index=False)  
 except:
-    result.to_csv('check_point_pre_final.csv', index=False)
+    result.to_csv('check_point_pre_final.csv', index=False, encoding='latin1')
 del result['barrio_poly']
 del result['barrio_geo']
 del result['score']
@@ -668,5 +669,5 @@ del result['dir_filtradas']
 try:
     result.to_excel(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.xlsx', index=False) 
 except:
-    result.to_csv(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.csv', index=False) 
+    result.to_csv(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.csv', index=False, encoding='latin1') 
 print('procedimiento finalizado .... Nos vemos mañana')
