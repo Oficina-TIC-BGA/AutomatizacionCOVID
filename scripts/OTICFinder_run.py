@@ -605,7 +605,7 @@ df_addresses['dir_filtradas'] = df_addresses.dir_filtradas.apply(lambda x: where
 try:
     df_addresses.to_excel('check_point.xlsx', index=False)
 except:
-    df_addresses.to_csv('check_point.csv', index=False, encoding='latin1')
+    df_addresses.to_csv('check_point.csv', index=False, encoding='utf-8-sig')
 ## Buscar coordenadas 
 print('Geoposicionando ...')
 # ArcGIS - la mejor opción a google
@@ -615,7 +615,7 @@ arcgis = search(geolocator_arcgis, df_addresses)
 try:
     arcgis.to_excel('check_point_geo.xlsx', index=False)
 except:
-    arcgis.to_csv('check_point_geo.csv', index=False, encoding='latin1')
+    arcgis.to_csv('check_point_geo.csv', index=False, encoding='utf-8-sig')
     
 # buscar el barrio con las coordenadas
 print('Cruzando información de polígonos (barrios)...')
@@ -628,14 +628,15 @@ result = buscar_barrio(path_poligonos_bucaramanga,
 try:
     result.to_excel('check_point_geo_barrio.xlsx', index=False)
 except:
-    result.to_csv('check_point_geo_barrio.csv', index=False, encoding='latin1')
+    result.to_csv('check_point_geo_barrio.csv', index=False, encoding='utf-8-sig')
 print('Buscando (comunas)...')
 # por ahora solo se hace la busqueda para bucaramanga
 result = buscar_comuna(result, todos_div_pol)  
 try:
     result.to_excel('check_point_geo_barrio_comuna.xlsx', index=False)
 except:
-    result.to_csv('check_point_geo_barrio_comuna.csv', index=False, encoding='latin1')
+    result.to_csv('check_point_geo_barrio_comuna.csv', index=False, encoding='utf-8-sig')
+
 print('Creando estructura final ...')
 result[['NUMERO COMUNA','NOMCOMUNA']] =  result.COMUNA.str.split(".",expand=True)
 result['tem'] = result.NOMCOMUNA
@@ -658,7 +659,7 @@ del result['tem']
 try:
     result.to_excel('check_point_pre_final.xlsx', index=False)  
 except:
-    result.to_csv('check_point_pre_final.csv', index=False, encoding='latin1')
+    result.to_csv('check_point_pre_final.csv', index=False, encoding='utf-8-sig')
 del result['barrio_poly']
 del result['barrio_geo']
 del result['score']
@@ -669,5 +670,5 @@ del result['dir_filtradas']
 try:
     result.to_excel(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.xlsx', index=False) 
 except:
-    result.to_csv(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.csv', index=False, encoding='latin1') 
+    result.to_csv(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.csv', index=False, encoding='utf-8-sig') 
 print('procedimiento finalizado .... Nos vemos mañana')
