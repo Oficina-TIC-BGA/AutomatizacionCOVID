@@ -1,4 +1,3 @@
-!pip -q install xlsxwriter
 ## importart librerias 
 # para recibir los parametros
 import argparse
@@ -542,7 +541,7 @@ SISMUESTRA = pd.read_excel(xls, sheet_name='SISMUESTRA')
 PRUEBA = pd.read_excel(xls, sheet_name='PRUEBA ANTIGENICA')
 
 # Crear Pandas Excel writer usando XlsxWriter as the engine.
-writer = pd.ExcelWriter(path_ira_historico, engine='xlsxwriter')
+writer = pd.ExcelWriter(path_ira_historico.split('/')[-1], engine='xlsxwriter')
 
 # Write each dataframe to a different worksheet.
 TDINAMICA.to_excel(writer, sheet_name='TDINAMICA', index=False)
@@ -562,6 +561,6 @@ print('Registros actuales en el histórico: {}'.format(PRASS.shape[0]))
 ## guardar todo
 ## Guardar copia
 try:
-    pd.concat([df_prass_base,df_prass_dia]).to_excel(path_ira_historico.split('/')[-1].replace('.xlsx', '_backup.xlsx'), index=False, sheet_name='PRASS')
+    pd.concat([df_prass_base,df_prass_dia]).to_excel(path_ira_historico.split('/')[-1].replace('.xlsx', '_solo_dia_backup.xlsx'), index=False, sheet_name='PRASS')
 except:
     pd.concat([df_prass_base,df_prass_dia]).to_csv(path_ira_historico.split('/')[-1].replace('.xlsx', '_backup.csv'), index=False, encoding='utf-8-sig') 
