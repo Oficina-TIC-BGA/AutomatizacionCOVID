@@ -1,3 +1,4 @@
+!pip -q install xlsxwriter
 ## importart librerias 
 # para recibir los parametros
 import argparse
@@ -516,6 +517,7 @@ PRASS = pd.concat([df_prass_base,df_prass_dia])
 
 # cambiar antigénica por Antigénica
 PRASS.loc[PRASS['Tipo de prueba de hisopado']=='antigénica', 'Tipo de prueba de hisopado'] = 'Antigénica'
+PRASS.RESULTADO = PRASS.RESULTADO.str.strip().str.replace("'","")
 # aplicar correción a casos particulares ..
 # Casos con resultado de pruebas pero campo vacio en tipo de prueba se debe ajustar a pcr
 # Casos donde se tienen las dos pruebas se debe colocar PCR
@@ -528,6 +530,8 @@ PRASS.loc[~(PRASS['Tipo de prueba de hisopado'].isin(['PCR', 'Antigénica']))
             &((PRASS.RESULTADO.isin(['No aplica', 'No acepta toma muestra']))
             &~(PRASS['Resultado prueba antigenica'].isin(['No aplica', 'No acepta toma muestra']))), 'Tipo de prueba de hisopado'] = 'Antigénica'
 
+# solo pcr
+PRASS.loc[(PRASS['Tipo de prueba de hisopado'].isna())&(PRASS.RESULTADO.str.lower().isin(['positivo', 'negativo', 'pendiente'])), 'Tipo de prueba de hisopado'] = 'PCR'
 print('Registros antiguos en el histórico: {}'.format(df_prass_base.shape[0])) 
 
 print('Extrayendo el resto de hojas de información del histórico base')
@@ -541,7 +545,7 @@ SISMUESTRA = pd.read_excel(xls, sheet_name='SISMUESTRA')
 PRUEBA = pd.read_excel(xls, sheet_name='PRUEBA ANTIGENICA')
 
 # Crear Pandas Excel writer usando XlsxWriter as the engine.
-writer = pd.ExcelWriter(path_ira_historico.split('/')[-1], engine='xlsxwriter')
+writer = pd.ExcelWriter(path_ira_historico, engine='xlsxwriter')
 
 # Write each dataframe to a different worksheet.
 TDINAMICA.to_excel(writer, sheet_name='TDINAMICA', index=False)
@@ -561,6 +565,6 @@ print('Registros actuales en el histórico: {}'.format(PRASS.shape[0]))
 ## guardar todo
 ## Guardar copia
 try:
-    pd.concat([df_prass_base,df_prass_dia]).to_excel(path_ira_historico.split('/')[-1].replace('.xlsx', '_solo_dia_backup.xlsx'), index=False, sheet_name='PRASS')
+    pd.concat([df_prass_base,df_prass_dia]).to_excel(path_ira_historico.split('/')[-1].replace('.xlsx', '_backup.xlsx'), index=False, sheet_name='PRASS')
 except:
     pd.concat([df_prass_base,df_prass_dia]).to_csv(path_ira_historico.split('/')[-1].replace('.xlsx', '_backup.csv'), index=False, encoding='utf-8-sig') 
