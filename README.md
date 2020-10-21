@@ -2,6 +2,10 @@
 
 Abrir el notebook **OTICFinder.ipynb**. Clickear en el botón "Open in Colab" y seguir las instrucciones.
 
+ACTUALIZACIONES EN PROCESO: Inclusión de polígonos de municipios de santander para mayor precisión.   
+Fecha de actualización: 25 de Octubre.  
+
+
 En la carpeta files pueden consultar el excel "direcciones_ejemplo.xlsx" con la estructura necesaria del excel. Deben coincidir el nombre exacto de las columnas. Adicionalmente, es **fuertemente recomendable** dejar vacio las casillas donde no haya información.
 
 **1 Revisión de rendimiento día 16 de septiembre 2020 - 16 septiembre**
