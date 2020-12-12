@@ -231,9 +231,14 @@ df_antigenica = df_antigenica.loc[df_antigenica.fecha >= '2020-08-22']
 df_sismuestras.FechaMuestra = pd.to_datetime(df_sismuestras.FechaMuestra,  dayfirst=True)
 df_sismuestras.Fecha_Resultado = pd.to_datetime(df_sismuestras.Fecha_Resultado,  dayfirst=True)
 df_sismuestras = df_sismuestras.loc[df_sismuestras.FechaMuestra>='2020-08-22']  
+
+df_sismuestras.Documento = df_sismuestras.Documento.str.strip()
+df_antigenica.num_identificacion = df_antigenica.num_identificacion.str.strip() 
+
 print('Numero de registros en cada base de datos PCR: {} - Antigena {}'.format(df_sismuestras.shape[0],df_antigenica.shape[0]))
 
 ### PRASS del día
+df_prass_dia['Número de documento'] = df_prass_dia['Número de documento'].str.strip()
 print('Registros en del día: {}'.format(df_prass_dia.shape[0]))
 ## Crear la estructura del prass a llenar
 columnas = ['RESULTADO', 'NOMBRE', 'PRIMER APELLIDO', 'BARRIO', 
@@ -241,7 +246,7 @@ columnas = ['RESULTADO', 'NOMBRE', 'PRIMER APELLIDO', 'BARRIO',
             'Resultado prueba antigenica', 'Fecha prueba antigenica', 
             'Dias diferencias pba antigenica', 'Escala tiempo PCR', 'Escala tiempo antigénica']
 for columna in columnas: 
-    df_prass_dia[columna] = '' 
+    df_prass_dia[columna] = ''  
 
 # 1. Regla de negocio. Determinar pruebas fallidas  y efectiva
 df_prass_dia.loc[df_prass_dia.Nombres.isnull(),'ESTADO VISITA'] = 'FALLIDAS'
@@ -250,6 +255,12 @@ df_prass_dia.loc[~df_prass_dia.Nombres.isnull(),'ESTADO VISITA'] = 'EFECTIVAS'
 # 2. Regla de negocio buscar pruebas positvas o negativas por cedula
 # cedulas con prueba
 cc = df_prass_dia.loc[~(df_prass_dia['Número de documento'].isnull()),'Número de documento']
+
+# eliminar duplicados de sismuestras
+df_sismuestras = df_sismuestras[~df_sismuestras['Documento'].duplicated(keep='last')]
+
+# eliminar duplicados de antigenicas 
+df_antigenica = df_antigenica[~df_antigenica['num_identificacion'].duplicated(keep='last')]
 
 # buscar resultado de pruebas
 # PCR
@@ -277,37 +288,44 @@ resultado_ant = resultado_ant.loc[~resultado_ant['Número de documento'].duplica
 pivot_pcr = df_prass_dia.loc[df_prass_dia['Número de documento'].isin(resultado_pcr['Número de documento']),['CreationDate',
                                                                                                              'Número de documento', 
                                                                                                              'Fecha Resultado']]
+pivot_pcr = pivot_pcr.loc[~pivot_pcr['Número de documento'].duplicated(keep='last')]
+
 # si encontro algun documento
 if pivot_pcr.shape[0]!=0:
     # Colocar el tipo prueba todo PCR por que hay unos que no vienen
     # se hace el ajuste de tipo de prueba para los que no tienen 
     df_prass_dia.loc[df_prass_dia['Número de documento'].isin(resultado_pcr['Número de documento']),'Tipo de prueba de hisopado'] = 'PCR'
     # hacer el remplazo de los encontrados PCR
-    df_prass_dia.loc[df_prass_dia['Número de documento'].isin(resultado_pcr['Número de documento']),['NOMBRE',
-                                                                                                    'PRIMER APELLIDO',
-                                                                                                    'Fecha Resultado',
-                                                                                                    'RESULTADO']] = pd.merge(pivot_pcr['Número de documento'], 
-                                                                                                                            resultado_pcr, 
-                                                                                                                            on='Número de documento').drop('Número de documento', axis=1).values
+    df_prass_dia.loc[(df_prass_dia['Número de documento'].isin(resultado_pcr['Número de documento']))
+                    &(~df_prass_dia['Número de documento'].duplicated(keep='last')),['NOMBRE',
+                                                                                    'PRIMER APELLIDO',
+                                                                                    'Fecha Resultado',
+                                                                                    'RESULTADO']] = pd.merge(pivot_pcr['Número de documento'], 
+                                                                                                                        resultado_pcr, 
+                                                                                                                        on='Número de documento').drop('Número de documento', axis=1).values
 
-# crear pivot para poder ordenar por documento (antigenica)
+# crear pivot para poder ordenar por documento
 pivot_ant = df_prass_dia.loc[df_prass_dia['Número de documento'].isin(resultado_ant['Número de documento']),['CreationDate',
                                                                                                              'Número de documento', 
-                                                                                                             'Fecha prueba antigenica']]  
+                                                                                                             'Fecha prueba antigenica']]
+pivot_ant = pivot_ant.loc[~pivot_ant['Número de documento'].duplicated(keep='last')]
+  
 # aqui puede pasar que se reemplaze un pcr por una antigenica en tipo prueba este caso se corrige mas adelate
 # si encontro alguno documento
 if pivot_ant.shape[0]!=0:
     # Colocar el tipo prueba todo antigenica por que hay unos que no vienen
     df_prass_dia.loc[df_prass_dia['Número de documento'].isin(resultado_ant['Número de documento']),'Tipo de prueba de hisopado'] = 'Antigénica'
     # hacer el remplazo de los encontrados antigenica
-    df_prass_dia.loc[df_prass_dia['Número de documento'].isin(resultado_ant['Número de documento']),['NOMBRE',
-                                                                                                    'Fecha prueba antigenica',
-                                                                                                    'Resultado prueba antigenica']] = pd.merge(pivot_ant['Número de documento'], 
+    df_prass_dia.loc[(df_prass_dia['Número de documento'].isin(resultado_ant['Número de documento']))
+                    &(~df_prass_dia['Número de documento'].duplicated(keep='last')),['NOMBRE',
+                                                                                    'Fecha prueba antigenica',
+                                                                                    'Resultado prueba antigenica']] = pd.merge(pivot_ant['Número de documento'], 
                                                                                                                             resultado_ant, 
                                                                                                                             on='Número de documento').drop('Número de documento', axis=1).values   
 
 # Colocar el no acepta toma de muestra
-df_prass_dia.loc[df_prass_dia['Muestras y notificación'].astype(str)=='la_persona_no_acepta_la_toma_de','RESULTADO'] = 'No acepta toma muestra' 
+df_prass_dia.loc[df_prass_dia['Muestras y notificación'].astype(str)=='la_persona_no_acepta_la_toma_de','RESULTADO'] = 'No acepta toma muestra'
+
 # ahora si tiene PCR - antigenica y no fecha colocar pendiente
 df_prass_dia.loc[(df_prass_dia['Tipo de prueba de hisopado']=='PCR')&(df_prass_dia['RESULTADO']==''),'RESULTADO'] = 'Pendiente'
 # para las antigenicas
@@ -315,7 +333,7 @@ df_prass_dia.loc[(df_prass_dia['Tipo de prueba de hisopado']=='Antigénica')&(df
                  'Resultado prueba antigenica'] = 'Pendiente'
 
 # Para sacar diferencias se adiciona un día a la cuenta ya que pandas hace el conteo en hora tomando así al día anterior
-# sacar diferencias en PCR
+# sacar diferencias
 df_prass_dia['Fecha Resultado'] = df_prass_dia['Fecha Resultado'].astype('datetime64[ns]')
 df_prass_dia.loc[~df_prass_dia['Fecha Resultado'].isnull(), 'Dias diferencias'] = (df_prass_dia.loc[~df_prass_dia['Fecha Resultado'].isnull(), 'Fecha Resultado'] - df_prass_dia.loc[~df_prass_dia['Fecha Resultado'].isnull(), 'CreationDate']).dt.days+1    
 
@@ -358,7 +376,7 @@ for index, row in df_prass_dia.iterrows():
             df_prass_dia.loc[df_prass_dia.index==index,'Resultado prueba antigenica'] = 'Pendiente'
             df_prass_dia.loc[df_prass_dia.index==index,'Dias diferencias pba antigenica'] = ''
     except:
-        pass                     
+        pass                    
 
 # Regla para crear la categorización de la demora de pruebas
 df_prass_dia['Escala tiempo PCR'] = df_prass_dia['Dias diferencias'].apply(lambda x: categorizar(x)) 
@@ -379,17 +397,49 @@ muni_alrededores = muni[(muni.NOMBRE.isin(['FLORIDABLANCA', 'BARRANCABERMEJA', '
 data_coords = pd.DataFrame([zip(df_prass_dia.x, df_prass_dia.y)]).T.rename(columns={0:'coordenadas'})
 datos_todos = pd.concat([datos_todos_bucaramanga, muni_alrededores], ignore_index=True) #datos_todos_floridablanca cuando lleguen de floridablanca
 result = buscar_solo_barrio(datos_todos, data_coords)
+
 # asignar el barrio final
-df_prass_dia.BARRIO = result.barrios
+df_prass_dia['BARRIO'] = result.barrios.values
 
 # 6 Regla de negocio - NORMALIZAR las eps
 df_prass_dia['Entidad Prestadora de Salud (EPS)'] = df_prass_dia['Entidad Prestadora de Salud (EPS)'].apply(lambda x: eps_estandarizacion(x))
 
-# Actualización del historico
+# cambiar antigénica por Antigénica
+df_prass_dia.loc[df_prass_dia['Tipo de prueba de hisopado']=='antigénica', 'Tipo de prueba de hisopado'] = 'Antigénica'
+
+df_prass_dia.RESULTADO = df_prass_dia.RESULTADO.str.strip().str.replace("'","")
+
+df_prass_dia['RESULTADO'] = df_prass_dia['RESULTADO'].str.strip()
+df_prass_dia['Resultado prueba antigenica'] = df_prass_dia['Resultado prueba antigenica'].str.strip()
+
+df_prass_dia.loc[~(df_prass_dia['Tipo de prueba de hisopado'].isin(['PCR']))
+            &(~(df_prass_dia.RESULTADO.isin(['No aplica', 'No acepta toma muestra']))
+            &~(df_prass_dia['Resultado prueba antigenica'].isin(['No aplica', 'No acepta toma muestra']))), 'Tipo de prueba de hisopado'] = 'PCR'
+
+# para el caso de las antigenicas
+df_prass_dia.loc[~(df_prass_dia['Tipo de prueba de hisopado'].isin(['PCR', 'Antigénica']))
+            &((df_prass_dia.RESULTADO.isin(['No aplica', 'No acepta toma muestra', 'INDETERMINADO']))
+            &~(df_prass_dia['Resultado prueba antigenica'].isin(['No aplica', 'No acepta toma muestra']))), 'Tipo de prueba de hisopado'] = 'Antigénica'
+
+df_prass_dia.loc[(df_prass_dia['Tipo de prueba de hisopado'].isna())&(df_prass_dia.RESULTADO.str.lower().isin(['positivo', 'negativo', 'pendiente'])), 'Tipo de prueba de hisopado'] = 'PCR'
+
+# filtrado bucaramanga
+barrios = datos_todos_bucaramanga.NOMBRE.values
+print('{} registros encontrados de Bucaramanga'.format(df_prass_dia.loc[df_prass_dia.BARRIO.isin(barrios)].shape[0]))
+
+df_prass_dia.loc[df_prass_dia.BARRIO.isin(barrios), 'Municipio (Código)'] = 68001.0
+# quito los que no estan en bucara y venian marcados como bucara
+df_prass_dia.loc[(df_prass_dia['Municipio (Código)']== 68001.0)&~(df_prass_dia.BARRIO.isin(barrios)), 'Municipio (Código)'] = np.nan
+
+
+#############################################
+
+# Actualización del historico (PRASS BASE)
 print('Actualización del histórico IRA')
 xls = pd.ExcelFile(path_ira_historico)
 # leer la hoja PRASS
 df_prass_base = pd.read_excel(xls, sheet_name='PRASS')
+df_prass_base['Número de documento'] = df_prass_base['Número de documento'].str.strip()
 # quitar la columna Unnamed: 0 - normalmente queda guaradada en una actualizacion anterior
 if df_prass_base.keys()[0]=='Unnamed: 0':
     df_prass_base.drop(['Unnamed: 0'], axis=1, inplace=True)
@@ -406,21 +456,29 @@ resultado_pcr_base.rename(columns={'Documento':'Número de documento',
                               'PrimerApellido':'PRIMER APELLIDO',
                               'Fecha_Resultado':'Fecha Resultado',
                               'Resultado':'RESULTADO'}, inplace=True)
+
+# duplicadas en sismuestras
+resultado_pcr_base = resultado_pcr_base[~resultado_pcr_base['Número de documento'].duplicated(keep='last')]
+
 print('Cedulas encontradas en sismuestras: {}'.format(resultado_pcr_base.shape[0]))
 # crear el pivot para actualizar registros
-pivot_pcr_base = df_prass_base.loc[(df_prass_base['Número de documento'].isin(resultado_pcr_base['Número de documento']))]
+pivot_pcr_base = df_prass_base.loc[(df_prass_base['RESULTADO'].isin(['No aplica','Pendiente']))
+                                    &(df_prass_base['Número de documento'].isin(resultado_pcr_base['Número de documento']))]
+
 # en caso de encontrar varios mantener los más recientes
-pivot_pcr_base = pivot_pcr_base.loc[~pivot_pcr_base['Número de documento'].duplicated(keep='last')]
+# eliminar duplicados
+pivot_pcr_base = pivot_pcr_base.loc[(~(pivot_pcr_base['Número de documento'].duplicated(keep='last')))]
+
 # proceso de actualización
 counter_act = 0
+nuevos = 0
 for index, row in resultado_pcr_base.iterrows():
     indx = pivot_pcr_base.loc[pivot_pcr_base['Número de documento']==row['Número de documento'],'RESULTADO'].index
     if indx.values.shape[0]==1:
         # traer el registro base
         registro_base = df_prass_base.loc[df_prass_base.index==indx.values[0]]
         # verificar que sea un registro nuevo
-        try: 
-            np.isnan(registro_base['Fecha Resultado'].values[0])
+        if np.isnan(registro_base['Fecha Resultado'].values[0]): 
             df_prass_base.loc[df_prass_base.index==indx.values[0], 'NOMBRE'] = row['NOMBRE']
             df_prass_base.loc[df_prass_base.index==indx.values[0], 'PRIMER APELLIDO'] = row['PRIMER APELLIDO']
             df_prass_base.loc[df_prass_base.index==indx.values[0], 'Fecha Resultado'] = row['Fecha Resultado']
@@ -432,27 +490,32 @@ for index, row in resultado_pcr_base.iterrows():
                 # se agrega un día para hacer el ajuste en la resta (el sistema no cuenta el último día)
                 df_prass_base.loc[df_prass_base.index==indx.values[0], 'Dias diferencias'] = dias
             else:
-                df_prass_base.loc[df_prass_base.index==indx.values[0], 'RESULTADO'] = 'Pendiente' 
-            counter_act = counter_act + 1
-        except:
+                df_prass_base.loc[df_prass_base.index==indx.values[0], 'RESULTADO'] = 'Pendiente'
+            nuevos = nuevos + 1
+        else:
             # quiere decir que ya hay una fecha por lo tanto mirar si la consulta arroja una nueva fecha
             # ademas verificar que no vengan fechas vacias
             if str(registro_base['Fecha Resultado'].values[0])!='nan' and str(row['Fecha Resultado'])!='nan':
-                if row['Fecha Resultado'] >= registro_base['Fecha Resultado'].values[0]: 
+                if row['Fecha Resultado'] > registro_base['Fecha Resultado'].values[0]: 
                     df_prass_base.loc[df_prass_base.index==indx.values[0], 'Fecha Resultado'] = row['Fecha Resultado']  
                     dias = (row['Fecha Resultado']-registro_base['CreationDate']).dt.days+1
                     if dias.values[0]>=0:
                         # se agrega un día para hacer el ajuste en la resta (el sistema no cuenta el último día)
                         df_prass_base.loc[df_prass_base.index==indx.values[0], 'Dias diferencias'] = dias
                         df_prass_base.loc[df_prass_base.index==indx.values[0], 'RESULTADO'] = row['RESULTADO']
+                        counter_act = counter_act + 1 
                     else:
                         # fechas que son anteriores al prass se ponen pendiente
                         df_prass_base.loc[df_prass_base.index==indx.values[0], 'RESULTADO'] = 'Pendiente' 
-                    counter_act = counter_act + 1 
+                    
+    else:
+        print(row, indx.shape) 
+
 print('{} registros actualizado por parte de prueba PCR'.format(counter_act))  
 # categorizar dias diferencias en PCR
 if pivot_pcr_base.shape[0]!=0:
     df_prass_base['Escala tiempo PCR'] = df_prass_base['Dias diferencias'].apply(lambda x: categorizar_base(x))     
+
 # Regla de negocio buscar pruebas positvas o negativas por cedula y actualizar estados en antigenica
 cc_prass_a_actualizar = df_prass_base.loc[(~(df_prass_base['Número de documento'].isnull()))&(df_prass_base['Resultado prueba antigenica'].isin(['No aplica','Pendiente']))]['Número de documento']  
 print('Cedulas a buscar en antigenica {}'.format(cc_prass_a_actualizar.shape))  
@@ -462,14 +525,18 @@ resultado_ant_base = df_antigenica.loc[df_antigenica.num_identificacion.isin(cc_
 resultado_ant_base.rename(columns={'num_identificacion':'Número de documento',
                               'nombre':'NOMBRE',
                               'fecha':'Fecha prueba antigenica',
-                              'resultado':'Resultado prueba antigenica'}, inplace=True)  
+                              'resultado':'Resultado prueba antigenica'}, inplace=True)
 print('Cedulas encontradas en antigenica: {}'.format(resultado_ant_base.shape[0])) 
 # hacer el pivot
-pivot_ant_base = df_prass_base.loc[(df_prass_base['Número de documento'].isin(resultado_ant_base['Número de documento']))]
+resultado_ant_base = resultado_ant_base[~resultado_ant_base['Número de documento'].duplicated(keep='last')]
+
+pivot_ant_base = df_prass_base.loc[(df_prass_base['Resultado prueba antigenica'].isin(['No aplica','Pendiente']))
+                                    &(df_prass_base['Número de documento'].isin(resultado_ant_base['Número de documento']))]
 pivot_ant_base = pivot_ant_base.loc[~pivot_ant_base['Número de documento'].duplicated(keep='last')]
 
 # proceso de actualización de antigenicas
 counter_act = 0
+nuevos = 0
 if pivot_ant_base.shape[0]!=0:
     for index, row in resultado_ant_base.iterrows():
         indx = pivot_ant_base.loc[pivot_ant_base['Número de documento']==row['Número de documento'],'Resultado prueba antigenica'].index
@@ -477,8 +544,7 @@ if pivot_ant_base.shape[0]!=0:
             # traer el registro base
             registro_base = df_prass_base.loc[df_prass_base.index==indx.values[0]]
             # verificar que sea un registro nuevo
-            try: 
-                np.isnan(registro_base['Fecha prueba antigenica'].values[0])
+            if np.isnan(registro_base['Fecha prueba antigenica'].values[0]): 
                 df_prass_base.loc[df_prass_base.index==indx.values[0], 'NOMBRE'] = row['NOMBRE']
                 df_prass_base.loc[df_prass_base.index==indx.values[0], 'Fecha prueba antigenica'] = row['Fecha prueba antigenica']
                 # sacar los dias diferencia - condiciona el resultado
@@ -490,22 +556,25 @@ if pivot_ant_base.shape[0]!=0:
                     df_prass_base.loc[df_prass_base.index==indx.values[0], 'Dias diferencias pba antigenica'] = dias
                 else:
                     df_prass_base.loc[df_prass_base.index==indx.values[0], 'Resultado prueba antigenica'] = 'Pendiente' 
-                counter_act = counter_act + 1
-            except:
+                nuevos = nuevos + 1
+            else:
                 # quiere decir que ya hay una fecha por lo tanto mirar si la consulta arroja una nueva fecha
                 # ademas verificar que no vengan fechas vacias
                 if str(registro_base['Fecha prueba antigenica'].values[0])!='nan' and str(row['Fecha prueba antigenica'])!='nan':
-                    if row['Fecha prueba antigenica'] >= registro_base['Fecha prueba antigenica'].values[0]: 
+                    if row['Fecha prueba antigenica'] > registro_base['Fecha prueba antigenica'].values[0]: 
                         df_prass_base.loc[df_prass_base.index==indx.values[0], 'Fecha prueba antigenica'] = row['Fecha prueba antigenica']  
                         dias = (row['Fecha prueba antigenica']-registro_base['CreationDate']).dt.days+1
                         if dias.values[0]>=0:
                             # se agrega un día para hacer el ajuste en la resta (el sistema no cuenta el último día)
                             df_prass_base.loc[df_prass_base.index==indx.values[0], 'Dias diferencias pba antigenica'] = dias
                             df_prass_base.loc[df_prass_base.index==indx.values[0], 'Resultado prueba antigenica'] = row['Resultado prueba antigenica']
+                            counter_act = counter_act + 1 
                         else:
                             # fechas que son anteriores al prass se ponen pendiente
                             df_prass_base.loc[df_prass_base.index==indx.values[0], 'Resultado prueba antigenica'] = 'Pendiente' 
-                        counter_act = counter_act + 1 
+                        
+        else:
+            print(row)   
 
 print('{} registros actualizado por parte de prueba antigenica'.format(counter_act))  
 # categorización en antigenicas                      
@@ -515,56 +584,25 @@ if pivot_ant_base.shape[0]!=0:
 print('Iniciando proceso final de concatención de histórico con el del día')
 PRASS = pd.concat([df_prass_base,df_prass_dia]) 
 
+PRASS.RESULTADO = PRASS.RESULTADO.str.strip() 
+PRASS['Resultado prueba antigenica'] = PRASS['Resultado prueba antigenica'].str.strip()
+
+PRASS.loc[(PRASS['Tipo de prueba de hisopado'].isnull()|PRASS['Tipo de prueba de hisopado'].isna())
+            &(PRASS.RESULTADO.isin(['NEGATIVO', 'POSITIVO', 'Pendiente'])), 'Tipo de prueba de hisopado'] = 'PCR'
+
 # cambiar antigénica por Antigénica
-PRASS.loc[PRASS['Tipo de prueba de hisopado']=='antigénica', 'Tipo de prueba de hisopado'] = 'Antigénica'
 PRASS.RESULTADO = PRASS.RESULTADO.str.strip().str.replace("'","")
-# aplicar correción a casos particulares ..
-# Casos con resultado de pruebas pero campo vacio en tipo de prueba se debe ajustar a pcr
-# Casos donde se tienen las dos pruebas se debe colocar PCR
-PRASS.loc[~(PRASS['Tipo de prueba de hisopado'].isin(['PCR'])) 
-            &(~(PRASS.RESULTADO.isin(['No aplica', 'No acepta toma muestra']))
-            &~(PRASS['Resultado prueba antigenica'].isin(['No aplica', 'No acepta toma muestra']))), 'Tipo de prueba de hisopado'] = 'PCR'
 
-# para el caso de las antigenicas
-PRASS.loc[~(PRASS['Tipo de prueba de hisopado'].isin(['PCR', 'Antigénica']))
-            &((PRASS.RESULTADO.isin(['No aplica', 'No acepta toma muestra']))
-            &~(PRASS['Resultado prueba antigenica'].isin(['No aplica', 'No acepta toma muestra']))), 'Tipo de prueba de hisopado'] = 'Antigénica'
+PRASS.loc[(PRASS['Tipo de prueba de hisopado'].isnull()|PRASS['Tipo de prueba de hisopado'].isna())
+            &~(PRASS.RESULTADO.isin(['NEGATIVO', 'POSITIVO', 'Pendiente']))
+            &(PRASS['Resultado prueba antigenica'].isin(['NEGATIVO', 'POSITIVO', 'Pendiente'])), 'Tipo de prueba de hisopado'] = 'Antigénica'
 
-# solo pcr
-PRASS.loc[(PRASS['Tipo de prueba de hisopado'].isna())&(PRASS.RESULTADO.str.lower().isin(['positivo', 'negativo', 'pendiente'])), 'Tipo de prueba de hisopado'] = 'PCR'
-print('Registros antiguos en el histórico: {}'.format(df_prass_base.shape[0])) 
 
-print('Extrayendo el resto de hojas de información del histórico base')
-# extraer las demas hojas del historico
-TDINAMICA  = pd.read_excel(xls, sheet_name='TDINAMICA')
-anteriores  = pd.read_excel(xls, sheet_name='anteriores')
-EPS = pd.read_excel(xls, sheet_name='EPS')
-Hoja1 = pd.read_excel(xls, sheet_name='Hoja1')
-formulado = pd.read_excel(xls, sheet_name='formulado PRASS (2)') 
-SISMUESTRA = pd.read_excel(xls, sheet_name='SISMUESTRA')
-PRUEBA = pd.read_excel(xls, sheet_name='PRUEBA ANTIGENICA')
+PRASS.loc[(PRASS['Municipio (Código)']== 68001.0)].to_excel('PRASS BUCARAMANGA 2020.xlsx', index=False, sheet_name='PRASS')
+# corregir las fechas . Regla rafa buitrago
+PRASS.loc[(PRASS['Municipio (Código)']== 68001.0), 'EditDate'] = PRASS.loc[(PRASS['Municipio (Código)']== 68001.0), 'EditDate'].dt.strftime('%d-%m-%Y')
+PRASS.loc[(PRASS['Municipio (Código)']== 68001.0), 'CreationDate'] = PRASS.loc[(PRASS['Municipio (Código)']== 68001.0), 'CreationDate'].dt.strftime('%d-%m-%Y')
+PRASS.loc[(PRASS['Municipio (Código)']== 68001.0), 'Fecha de nacimiento'] = PRASS.loc[(PRASS['Municipio (Código)']== 68001.0), 'Fecha de nacimiento'].dt.strftime('%d-%m-%Y')
 
-# Crear Pandas Excel writer usando XlsxWriter as the engine.
-writer = pd.ExcelWriter(path_ira_historico, engine='xlsxwriter')
-
-# Write each dataframe to a different worksheet.
-TDINAMICA.to_excel(writer, sheet_name='TDINAMICA', index=False)
-anteriores.to_excel(writer, sheet_name='anteriores', index=False)
-EPS.to_excel(writer, sheet_name='EPS', index=False)
-PRASS.to_excel(writer, sheet_name='PRASS', index=False)
-Hoja1.to_excel(writer, sheet_name='Hoja1', index=False)
-formulado.to_excel(writer, sheet_name='formulado PRASS (2)', index=False)
-SISMUESTRA.to_excel(writer, sheet_name='SISMUESTRA', index=False)
-PRUEBA.to_excel(writer, sheet_name='PRUEBA ANTIGENICA', index=False)
-
-# Cerrar y guardar el workbook
-writer.save()
-
-print('Proceso de actualización de PRASS finalizado')
-print('Registros actuales en el histórico: {}'.format(PRASS.shape[0]))
-## guardar todo
-## Guardar copia
-try:
-    pd.concat([df_prass_base,df_prass_dia]).to_excel(path_ira_historico.split('/')[-1].replace('.xlsx', '_backup.xlsx'), index=False, sheet_name='PRASS')
-except:
-    pd.concat([df_prass_base,df_prass_dia]).to_csv(path_ira_historico.split('/')[-1].replace('.xlsx', '_backup.csv'), index=False, encoding='utf-8-sig') 
+# se le envia a rafa
+PRASS.loc[(PRASS['Municipio (Código)']== 68001.0)].to_excel('PRASS BUCARAMANGA 2020_rafa.xlsx', index=False, sheet_name='PRASS')
