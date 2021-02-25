@@ -668,7 +668,7 @@ del result['score']
 #del result['ciudad_geo']
 del result['coordenadas']
 del result['respuesta']
-#del result['dir_filtradas']
+del result['dir_filtradas']
 try:
     result.to_excel(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.xlsx', index=False) 
 except:
