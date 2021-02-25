@@ -332,6 +332,8 @@ def search(geolocator, df_addresses):
     geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
     tem['location'] = tem['dir_filtradas'].progress_apply(geocode)
     tem['coordenadas'] = tem['location'].apply(lambda loc: tuple([loc.longitude, loc.latitude]) if loc else None)
+    tem['longitud'] = tem['location'].apply(lambda loc: loc.longitude if loc else None)
+    tem['latitud'] = tem['location'].apply(lambda loc: loc.latitude if loc else None)
     tem['respuesta'] = tem['location'].apply(lambda loc: loc.raw if loc else None)
     del tem['location']
 
@@ -609,7 +611,7 @@ except:
 ## Buscar coordenadas 
 print('Geoposicionando ...')
 # ArcGIS - la mejor opción a google
-geolocator_arcgis = ArcGIS(username=None, password=None, user_agent=addresses_path.split('/')[-1])
+geolocator_arcgis = ArcGIS(username=None, password=None, user_agent=addresses_path.split('/')[-1], timeout=10)
 # usando arcgis
 arcgis = search(geolocator_arcgis, df_addresses)
 try:
@@ -663,10 +665,10 @@ except:
 del result['barrio_poly']
 del result['barrio_geo']
 del result['score']
-del result['ciudad_geo']
+#del result['ciudad_geo']
 del result['coordenadas']
 del result['respuesta']
-del result['dir_filtradas']
+#del result['dir_filtradas']
 try:
     result.to_excel(addresses_path.split('/')[-1].split('.')[0]+'_estructura_final.xlsx', index=False) 
 except:
